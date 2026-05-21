@@ -1,0 +1,1551 @@
+
+html_content = '''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>觉醒书架 - 认知觉醒伴侣</title>
+    <style>
+        :root {
+            --rational: #3B82F6;
+            --emotional: #F97316;
+            --instinct: #EAB308;
+            --bg: #FAF9F6;
+            --bg-dark: #1F2937;
+            --text: #374151;
+            --text-light: #6B7280;
+            --card-bg: #FFFFFF;
+            --border: #E5E7EB;
+            --shadow: 0 2px 12px rgba(0,0,0,0.06);
+            --radius: 20px;
+            --radius-sm: 12px;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        
+        .page { display: none; animation: fadeIn 0.3s ease; padding: 16px; max-width: 480px; margin: 0 auto; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 20px 0 10px;
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 10;
+        }
+        .header h1 { font-size: 22px; font-weight: 600; color: var(--text); }
+        .header p { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+        
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--rational); color: white; }
+        .btn-emotional { background: var(--emotional); color: white; }
+        .btn-instinct { background: var(--instinct); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+        .btn-fall { background: linear-gradient(135deg, #EF4444, #F97316); color: white; font-size: 16px; }
+        .btn-minimal { background: #10B981; color: white; }
+        
+        /* Brain selector */
+        .brain-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .brain-btn {
+            padding: 16px 8px;
+            border-radius: var(--radius-sm);
+            border: 2px solid transparent;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        .brain-btn .icon { font-size: 28px; display: block; margin-bottom: 6px; }
+        .brain-btn .label { font-size: 13px; font-weight: 600; }
+        .brain-btn.rational { border-color: var(--rational); color: var(--rational); }
+        .brain-btn.emotional { border-color: var(--emotional); color: var(--emotional); }
+        .brain-btn.instinct { border-color: var(--instinct); color: var(--instinct); }
+        .brain-btn.active { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .brain-btn.rational.active { background: #EFF6FF; }
+        .brain-btn.emotional.active { background: #FFF7ED; }
+        .brain-btn.instinct.active { background: #FEFCE8; }
+        
+        /* Quote */
+        .quote-card {
+            background: linear-gradient(135deg, #EFF6FF, #FFF7ED);
+            border-left: 4px solid var(--rational);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            font-style: italic;
+            color: var(--text);
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .quote-card::before { content: '"'; font-size: 40px; color: var(--rational); opacity: 0.3; position: absolute; top: -10px; left: 8px; }
+        .quote-author { text-align: right; font-size: 12px; color: var(--text-light); margin-top: 8px; font-style: normal; }
+        
+        /* Plan list */
+        .plan-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px;
+            background: white;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+        }
+        .plan-info h4 { font-size: 15px; margin-bottom: 4px; }
+        .plan-info span { font-size: 12px; color: var(--text-light); }
+        .plan-actions { display: flex; gap: 8px; }
+        .plan-actions button {
+            width: 32px; height: 32px; border-radius: 50%; border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px;
+        }
+        
+        /* Floating fall button */
+        .fab-fall {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #EF4444, #F97316);
+            color: white;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(239,68,68,0.4);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 4px 16px rgba(239,68,68,0.4); }
+            50% { box-shadow: 0 4px 24px rgba(239,68,68,0.6); }
+        }
+        
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            z-index: 50;
+        }
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 6px;
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 11px;
+            transition: color 0.2s;
+        }
+        .nav-item .nav-icon { font-size: 22px; display: block; margin-bottom: 2px; }
+        .nav-item.active { color: var(--rational); }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { font-size: 18px; font-weight: 600; margin-bottom: 16px; text-align: center; }
+        .modal-close { position: absolute; top: 16px; right: 16px; font-size: 24px; cursor: pointer; }
+        
+        /* Test styles */
+        .test-option {
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .test-option:hover, .test-option.selected {
+            border-color: var(--rational);
+            background: #EFF6FF;
+        }
+        
+        /* Chat */
+        .chat-container {
+            height: 60vh;
+            overflow-y: auto;
+            padding: 10px;
+            background: #F3F4F6;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+        }
+        .chat-msg {
+            max-width: 80%;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .chat-msg.user {
+            background: var(--rational);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-msg.ai {
+            background: white;
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            outline: none;
+        }
+        .chat-input:focus { border-color: var(--rational); }
+        
+        /* Charts */
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            margin: 16px 0;
+            position: relative;
+        }
+        canvas { width: 100%; height: 100%; }
+        
+        /* Milestone */
+        .milestone {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: white;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            opacity: 0.5;
+        }
+        .milestone.unlocked { opacity: 1; border-color: var(--instinct); background: #FEFCE8; }
+        .milestone-icon { font-size: 28px; }
+        .milestone-text h4 { font-size: 14px; margin-bottom: 2px; }
+        .milestone-text p { font-size: 12px; color: var(--text-light); }
+        
+        /* Alarm modal */
+        .alarm-modal {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .alarm-icon { font-size: 60px; margin-bottom: 20px; animation: shake 0.5s infinite; }
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        .alarm-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        .alarm-desc { color: var(--text-light); margin-bottom: 24px; }
+        .alarm-actions { display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Log entry */
+        .log-entry {
+            padding: 12px;
+            border-left: 4px solid var(--border);
+            background: white;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 10px;
+        }
+        .log-entry.rational { border-left-color: var(--rational); }
+        .log-entry.emotional { border-left-color: var(--emotional); }
+        .log-entry.instinct { border-left-color: var(--instinct); }
+        .log-time { font-size: 11px; color: var(--text-light); margin-bottom: 4px; }
+        .log-note { font-size: 14px; }
+        .log-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        .log-tag.rational { background: #EFF6FF; color: var(--rational); }
+        .log-tag.emotional { background: #FFF7ED; color: var(--emotional); }
+        .log-tag.instinct { background: #FEFCE8; color: var(--instinct); }
+        
+        /* Insight stats */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 16px 8px;
+            background: white;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .stat-value { font-size: 24px; font-weight: 700; }
+        .stat-label { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+        .stat-box.rational .stat-value { color: var(--rational); }
+        .stat-box.emotional .stat-value { color: var(--emotional); }
+        .stat-box.instinct .stat-value { color: var(--instinct); }
+        
+        /* Onboarding */
+        .onboarding {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .onboarding.hidden { display: none; }
+        .onboarding h2 { font-size: 24px; margin-bottom: 16px; }
+        .onboarding p { color: var(--text-light); margin-bottom: 24px; max-width: 320px; }
+        .onboarding-step { display: none; }
+        .onboarding-step.active { display: block; }
+        
+        /* Toggle switch */
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .toggle-switch {
+            width: 50px; height: 28px;
+            background: var(--border);
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggle-switch.active { background: var(--rational); }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 24px; height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 2px; left: 2px;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.active::after { transform: translateX(22px); }
+        
+        /* Bracelet simulation */
+        .bracelet-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #ECFDF5;
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            color: #059669;
+            font-size: 14px;
+        }
+        .bracelet-status.disconnected { background: #F3F4F6; color: var(--text-light); }
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #10B981;
+            animation: blink 2s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        /* Friend card */
+        .friend-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: white;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+        }
+        .friend-avatar {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--rational), var(--emotional));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            font-weight: 600;
+        }
+        .friend-info { flex: 1; }
+        .friend-info h4 { font-size: 15px; margin-bottom: 4px; }
+        .friend-brain { display: flex; gap: 4px; font-size: 11px; }
+        .brain-pill {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .brain-pill.rational { background: #EFF6FF; color: var(--rational); }
+        .brain-pill.emotional { background: #FFF7ED; color: var(--emotional); }
+        .brain-pill.instinct { background: #FEFCE8; color: var(--instinct); }
+        
+        /* Vibration animation */
+        .vibrating { animation: vibrate 0.3s linear infinite; }
+        @keyframes vibrate {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 360px) {
+            .brain-selector { grid-template-columns: 1fr; }
+            .stat-grid { grid-template-columns: 1fr 1fr; }
+        }
+        
+        /* Hidden helper */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<!-- Onboarding -->
+<div class="onboarding" id="onboarding">
+    <div class="onboarding-step active" id="step1">
+        <div style="font-size: 60px; margin-bottom: 20px;">🧠</div>
+        <h2>欢迎来到觉醒书架</h2>
+        <p>你不是懒，你只是被本能脑带跑了。我们将基于《认知觉醒》的三脑理论，陪你建立温和的阅读习惯。</p>
+        <button class="btn btn-primary" onclick="nextStep(2)">开始了解三脑</button>
+    </div>
+    <div class="onboarding-step" id="step2">
+        <div style="font-size: 60px; margin-bottom: 20px;">🔵🟠🟡</div>
+        <h2>认识你的三脑</h2>
+        <p><strong style="color:var(--rational)">理智脑</strong>：理性规划，长期视角<br>
+           <strong style="color:var(--emotional)">情绪脑</strong>：情感体验，即时反馈<br>
+           <strong style="color:var(--instinct)">本能脑</strong>：追求舒适，逃避痛苦</p>
+        <button class="btn btn-primary" onclick="nextStep(3)">下一步</button>
+    </div>
+    <div class="onboarding-step" id="step3">
+        <div style="font-size: 60px; margin-bottom: 20px;">🍂</div>
+        <h2>坠落按钮</h2>
+        <p>当你做不到的时候，点这里，我们不judge。把"读1小时"改成"读1页"，也是一种胜利。</p>
+        <button class="btn btn-primary" onclick="finishOnboarding()">进入觉醒书架</button>
+    </div>
+</div>
+
+<!-- Pages -->
+<div class="page active" id="page-home">
+    <div class="header">
+        <h1>觉醒书架</h1>
+        <p id="date-display"></p>
+    </div>
+    
+    <div class="quote-card" id="daily-quote">
+        你不是懒，你只是被本能脑带跑了。
+        <div class="quote-author">—— 《认知觉醒》</div>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">🧠 现在哪个脑在阅读？</div>
+        <div class="brain-selector">
+            <div class="brain-btn rational" onclick="recordBrain('rational')">
+                <span class="icon">🔵</span>
+                <span class="label">理智脑</span>
+                <span style="font-size:11px;color:var(--text-light)">知道该做什么</span>
+            </div>
+            <div class="brain-btn emotional" onclick="recordBrain('emotional')">
+                <span class="icon">🟠</span>
+                <span class="label">情绪脑</span>
+                <span style="font-size:11px;color:var(--text-light)">烦/委屈/气</span>
+            </div>
+            <div class="brain-btn instinct" onclick="recordBrain('instinct')">
+                <span class="icon">🟡</span>
+                <span class="label">本能脑</span>
+                <span style="font-size:11px;color:var(--text-light)">想舒服/逃避</span>
+            </div>
+        </div>
+        <textarea id="brain-note" placeholder="可选：写一句话备注..." style="width:100%;padding:10px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:14px;resize:none;height:60px;outline:none;"></textarea>
+        <button class="btn btn-primary" style="margin-top:10px;" onclick="saveBrainLog()">记录此刻</button>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">📅 今日阅读计划</div>
+        <div id="plan-list"></div>
+        <button class="btn btn-outline" onclick="openModal('modal-plan')">+ 添加最小计划</button>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">📊 今日三脑状态</div>
+        <div class="chart-container">
+            <canvas id="todayChart"></canvas>
+        </div>
+        <div class="stat-grid">
+            <div class="stat-box rational">
+                <div class="stat-value" id="stat-rational">0</div>
+                <div class="stat-label">理智脑记录</div>
+            </div>
+            <div class="stat-box emotional">
+                <div class="stat-value" id="stat-emotional">0</div>
+                <div class="stat-label">情绪脑记录</div>
+            </div>
+            <div class="stat-box instinct">
+                <div class="stat-value" id="stat-instinct">0</div>
+                <div class="stat-label">本能脑记录</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-test">
+    <div class="header"><h1>三脑倾向测试</h1></div>
+    <div id="test-container">
+        <div class="card" id="test-start">
+            <div style="text-align:center;padding:20px;">
+                <div style="font-size:48px;margin-bottom:16px;">🧠</div>
+                <h3>阅读三脑倾向评估</h3>
+                <p style="color:var(--text-light);margin:12px 0;">5道简单选择题，了解你的阅读主导脑模式</p>
+                <button class="btn btn-primary" onclick="startTest()">开始测试</button>
+            </div>
+        </div>
+        <div id="test-questions" style="display:none;"></div>
+        <div id="test-result" style="display:none;"></div>
+    </div>
+</div>
+
+<div class="page" id="page-qa">
+    <div class="header"><h1>AI觉醒问答</h1><p>基于《认知觉醒》视角，不批判、不灌鸡汤</p></div>
+    <div class="card" style="padding:10px;">
+        <div class="chat-container" id="chat-box">
+            <div class="chat-msg ai">你好，我是你的觉醒顾问。可以问我任何关于阅读、拖延、情绪的问题。我会先解释"为什么你会这样"，再给你一个极小行动建议。</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chat-input" placeholder="例如：为什么我总是读不进去书？" onkeypress="if(event.key==='Enter')sendChat()">
+            <button class="btn btn-primary" style="width:auto;padding:12px 16px;" onclick="sendChat()">发送</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">💡 示例问题</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span class="brain-pill rational" style="cursor:pointer" onclick="setChat('为什么我总是拖延？')">为什么我总是拖延？</span>
+            <span class="brain-pill emotional" style="cursor:pointer" onclick="setChat('读完就忘怎么办？')">读完就忘怎么办？</span>
+            <span class="brain-pill instinct" style="cursor:pointer" onclick="setChat('为什么买很多书却不读？')">为什么买很多书却不读？</span>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-insight">
+    <div class="header"><h1>模式洞察</h1></div>
+    
+    <div class="card">
+        <div class="card-title">📈 三脑分布雷达图</div>
+        <div class="chart-container">
+            <canvas id="radarChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">📊 本周统计</div>
+        <div class="stat-grid">
+            <div class="stat-box rational"><div class="stat-value" id="week-rational">0%</div><div class="stat-label">理智脑</div></div>
+            <div class="stat-box emotional"><div class="stat-value" id="week-emotional">0%</div><div class="stat-label">情绪脑</div></div>
+            <div class="stat-box instinct"><div class="stat-value" id="week-instinct">0%</div><div class="stat-label">本能脑</div></div>
+        </div>
+        <div id="insight-advice" style="padding:12px;background:#F3F4F6;border-radius:var(--radius-sm);font-size:14px;color:var(--text);"></div>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">🏆 觉醒里程碑</div>
+        <div id="milestones"></div>
+    </div>
+</div>
+
+<div class="page" id="page-social">
+    <div class="header"><h1>觉醒共读</h1><p>查看好友三脑分布，寻找互补型书友</p></div>
+    
+    <div class="card">
+        <div class="card-title">👥 推荐书友</div>
+        <div class="friend-card">
+            <div class="friend-avatar">林</div>
+            <div class="friend-info">
+                <h4>小林</h4>
+                <div class="friend-brain">
+                    <span class="brain-pill rational">理智 65%</span>
+                    <span class="brain-pill emotional">情绪 25%</span>
+                </div>
+            </div>
+            <button class="btn btn-outline" style="width:auto;padding:8px 12px;font-size:12px;" onclick="sendVibe('小林')">发送震动</button>
+        </div>
+        <div class="friend-card">
+            <div class="friend-avatar" style="background:linear-gradient(135deg,var(--emotional),var(--instinct));">苏</div>
+            <div class="friend-info">
+                <h4>苏苏</h4>
+                <div class="friend-brain">
+                    <span class="brain-pill emotional">情绪 55%</span>
+                    <span class="brain-pill instinct">本能 30%</span>
+                </div>
+            </div>
+            <button class="btn btn-outline" style="width:auto;padding:8px 12px;font-size:12px;" onclick="sendVibe('苏苏')">发送震动</button>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">📳 社交震动设置</div>
+        <div class="toggle-row">
+            <span>允许好友震动提醒</span>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+        </div>
+        <div class="toggle-row">
+            <span>今日震动暗号</span>
+            <select style="padding:6px;border-radius:8px;border:1px solid var(--border);">
+                <option>震2下 = 我在用理智脑</option>
+                <option>震3下 = 需要支持</option>
+                <option>震1下 = 你好</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-device">
+    <div class="header"><h1>心脑监测手环</h1></div>
+    
+    <div class="card">
+        <div class="bracelet-status" id="bracelet-status">
+            <div class="status-dot"></div>
+            <span>手环已连接 • 电量 82%</span>
+        </div>
+        
+        <div class="card-title">💓 实时HRV监测</div>
+        <div class="chart-container">
+            <canvas id="hrvChart"></canvas>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <div class="brain-pill rational">HRV: 62ms</div>
+            <div class="brain-pill emotional">心率: 72bpm</div>
+            <div class="brain-pill instinct">状态: 平稳</div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">⏰ 震动静音闹钟</div>
+        <div class="toggle-row">
+            <span>早晨唤醒闹钟</span>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+        </div>
+        <div style="padding:10px 0;">
+            <label style="font-size:14px;color:var(--text-light);">唤醒模式</label>
+            <div class="brain-selector" style="margin-top:8px;">
+                <div class="brain-btn rational active" onclick="selectAlarmMode(this,'rational')">
+                    <span class="icon">🔵</span>
+                    <span class="label">理智脑</span>
+                    <span style="font-size:10px;">精准短促</span>
+                </div>
+                <div class="brain-btn emotional" onclick="selectAlarmMode(this,'emotional')">
+                    <span class="icon">🟠</span>
+                    <span class="label">情绪脑</span>
+                    <span style="font-size:10px;">波浪形</span>
+                </div>
+                <div class="brain-btn instinct" onclick="selectAlarmMode(this,'instinct')">
+                    <span class="icon">🟡</span>
+                    <span class="label">本能脑</span>
+                    <span style="font-size:10px;">逐渐增强</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">🎨 手环指示灯</div>
+        <div style="display:flex;gap:10px;justify-content:center;padding:10px;">
+            <div style="text-align:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--rational);margin:0 auto 6px;box-shadow:0 0 12px rgba(59,130,246,0.5);"></div>
+                <span style="font-size:11px;">理智主导</span>
+            </div>
+            <div style="text-align:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--emotional);margin:0 auto 6px;box-shadow:0 0 12px rgba(249,115,22,0.5);animation:pulse 2s infinite;"></div>
+                <span style="font-size:11px;">情绪活跃</span>
+            </div>
+            <div style="text-align:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--instinct);margin:0 auto 6px;box-shadow:0 0 12px rgba(234,179,8,0.5);animation:blink 1s infinite;"></div>
+                <span style="font-size:11px;">本能主导</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-logs">
+    <div class="header"><h1>觉醒日志</h1></div>
+    <div id="logs-list"></div>
+</div>
+
+<!-- Floating Fall Button -->
+<button class="fab-fall" onclick="openFall()">🍂<br><span style="font-size:10px;">坠落</span></button>
+
+<!-- Fall Modal -->
+<div class="modal-overlay" id="modal-fall">
+    <div class="modal-content">
+        <div class="modal-header">🍂 坠落按钮</div>
+        <p style="text-align:center;color:var(--text-light);margin-bottom:16px;">没关系，我们看看发生了什么</p>
+        <div id="fall-step1">
+            <div style="font-weight:600;margin-bottom:10px;">选择原因：</div>
+            <button class="btn btn-instinct" onclick="fallReason('instinct')">🟡 本能脑想偷懒</button>
+            <button class="btn btn-emotional" onclick="fallReason('emotional')">🟠 情绪脑很烦躁</button>
+            <button class="btn btn-primary" onclick="fallReason('rational')">🔵 理智脑觉得计划不合理</button>
+        </div>
+        <div id="fall-step2" style="display:none;">
+            <div id="fall-quote" style="padding:16px;background:#F3F4F6;border-radius:var(--radius-sm);font-style:italic;margin-bottom:16px;text-align:center;"></div>
+            <div style="font-weight:600;margin-bottom:10px;">要改成最小版本吗？</div>
+            <div id="fall-options"></div>
+            <button class="btn btn-outline" onclick="closeModal('modal-fall')">暂时不需要</button>
+        </div>
+        <div id="fall-step3" style="display:none;text-align:center;">
+            <div style="font-size:48px;margin-bottom:12px;">✨</div>
+            <p style="font-size:16px;margin-bottom:16px;">已为你调整至最小版本</p>
+            <p style="color:var(--text-light);font-size:14px;margin-bottom:20px;">完成最小行动，就是今天的胜利。</p>
+            <button class="btn btn-primary" onclick="closeModal('modal-fall')">好的，我明白了</button>
+        </div>
+    </div>
+</div>
+
+<!-- Plan Modal -->
+<div class="modal-overlay" id="modal-plan">
+    <div class="modal-content">
+        <div class="modal-header">添加阅读计划</div>
+        <input type="text" id="plan-title" placeholder="读什么书？" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;font-size:15px;outline:none;">
+        <input type="time" id="plan-time" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;font-size:15px;outline:none;">
+        <select id="plan-brain" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:16px;font-size:15px;outline:none;">
+            <option value="rational">🔵 理智脑时段（深度学习）</option>
+            <option value="emotional">🟠 情绪脑时段（享受阅读）</option>
+            <option value="instinct">🟡 本能脑时段（轻松入门）</option>
+        </select>
+        <button class="btn btn-primary" onclick="savePlan()">保存计划</button>
+        <button class="btn btn-outline" onclick="closeModal('modal-plan')">取消</button>
+    </div>
+</div>
+
+<!-- Alarm Modal -->
+<div class="modal-overlay" id="modal-alarm" style="background:rgba(0,0,0,0.7);">
+    <div class="modal-content alarm-modal">
+        <div class="alarm-icon">⏰</div>
+        <div class="alarm-title">阅读时间到了</div>
+        <div class="alarm-desc" id="alarm-plan-title">《认知觉醒》阅读计划</div>
+        <div class="alarm-actions">
+            <button class="btn btn-primary" onclick="alarmDone()">✅ 完成</button>
+            <button class="btn btn-outline" onclick="alarmLater()">⏰ 稍后提醒</button>
+            <button class="btn btn-fall" onclick="alarmFall()">🍂 我做不到</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+    <div class="nav-item active" onclick="navTo('home')">
+        <span class="nav-icon">🏠</span>
+        <span>首页</span>
+    </div>
+    <div class="nav-item" onclick="navTo('test')">
+        <span class="nav-icon">🧠</span>
+        <span>测试</span>
+    </div>
+    <div class="nav-item" onclick="navTo('qa')">
+        <span class="nav-icon">💬</span>
+        <span>问答</span>
+    </div>
+    <div class="nav-item" onclick="navTo('insight')">
+        <span class="nav-icon">📊</span>
+        <span>洞察</span>
+    </div>
+    <div class="nav-item" onclick="navTo('social')">
+        <span class="nav-icon">👥</span>
+        <span>社交</span>
+    </div>
+    <div class="nav-item" onclick="navTo('device')">
+        <span class="nav-icon">⌚</span>
+        <span>手环</span>
+    </div>
+</div>
+
+<script>
+// Data Store
+const store = {
+    logs: JSON.parse(localStorage.getItem('awaken_logs') || '[]'),
+    plans: JSON.parse(localStorage.getItem('awaken_plans') || '[]'),
+    testResult: JSON.parse(localStorage.getItem('awaken_test') || 'null'),
+    milestones: JSON.parse(localStorage.getItem('awaken_milestones') || '[]'),
+    firstVisit: localStorage.getItem('awaken_first') !== 'false'
+};
+
+const quotes = [
+    { text: "你不是懒，你只是被本能脑带跑了。", author: "《认知觉醒》" },
+    { text: "焦虑的本质是欲望与能力之间的差距太大。", author: "《认知觉醒》" },
+    { text: "行动力不足的真正原因是选择模糊。", author: "《认知觉醒》" },
+    { text: "真正的觉醒是内心的渴望，立足长远，保持耐心。", author: "《认知觉醒》" },
+    { text: "耐心不是毅力带来的，而是具有长远目光的结果。", author: "《认知觉醒》" }
+];
+
+const qaPairs = {
+    "拖延": "拖延可能是本能脑在保护你远离痛苦。大脑对困难任务天然抗拒，这是进化机制。试试'2分钟法则'：只做2分钟，然后允许自己停下。通常开始后，你会继续。",
+    "读不进去": "读不进去时，往往是本能脑觉得这本书'太费能量'。不要强迫自己，试试'最小版本'：只读1页，或换成听书模式。让本能脑感到安全，理智脑才能上线。",
+    "读完就忘": "读完就忘，是因为情绪脑没有参与。试试读完后问自己：这段让我联想到什么生活经历？给理智脑一个钩子，把新知识和旧体验绑定。",
+    "买书不读": "买书的快感来自本能脑对'拥有'的满足，而读书需要理智脑的投入。下次买书前，先读试读章，让三脑达成共识：这本书值得投入能量。",
+    "焦虑": "焦虑通常是因为同时想做的事太多。情绪脑在报警，理智脑却想全部掌控。试试把所有念头写下来，给情绪脑一个'已记录'的安全感，然后只选一件最小的事开始。",
+    "早起": "早起困难是本能脑在守护睡眠。不要靠意志力硬撑，试试睡前把闹钟放在必须起身才能关掉的地方，用环境设计代替自我对抗。",
+    "分心": "分心是本能脑被多巴胺劫持了。不要批判自己，觉察到分心时，温柔地问：'刚才本能脑想要什么？'承认它，然后邀请它：'我们先做5分钟这个，再满足你。'",
+    "完美主义": "完美主义是情绪脑对'被评价'的恐惧。它想保护你不被否定。试试'烂开始原则'：先做一个糟糕的版本，给情绪脑证明'即使不完美，天也不会塌'。"
+};
+
+const fallQuotes = {
+    instinct: "逃避不可耻，但会让你更焦虑。本能脑只是想保护你远离痛苦。试试只做最小版本？",
+    emotional: "烦躁是正常的，情绪脑想保护你。先照顾情绪，深呼吸3次，再回来面对。",
+    rational: "觉得计划不合理？调整比放弃更明智。理智脑发现了问题，这是好事。"
+};
+
+const fallOptions = {
+    instinct: [
+        { from: "读1小时", to: "读1页" },
+        { from: "做笔记", to: "划1句有感触的话" },
+        { from: "看完一章", to: "看完一段" }
+    ],
+    emotional: [
+        { from: "读严肃书", to: "换一本轻松的书" },
+        { from: "坐着读", to: "躺着听书" },
+        { from: "读新书", to: "重读喜欢的段落" }
+    ],
+    rational: [
+        { from: "读1小时", to: "读10分钟，然后评估" },
+        { from: "这本书", to: "换一本更匹配当下水平的书" },
+        { from: "今天读完", to: "不设期限，读到哪里算哪里" }
+    ]
+};
+
+const testQuestions = [
+    {
+        q: "当你拿起一本难读的书时，第一反应是？",
+        options: [
+            { text: "分析目录结构，制定阅读计划", brain: "rational" },
+            { text: "凭感觉翻到有共鸣的章节", brain: "emotional" },
+            { text: "先放一边，等状态好了再说", brain: "instinct" }
+        ]
+    },
+    {
+        q: "阅读时突然想刷手机，你会？",
+        options: [
+            { text: "记录刷手机冲动，分析触发点", brain: "rational" },
+            { text: "感到烦躁，觉得自己很糟糕", brain: "emotional" },
+            { text: "顺从冲动，先刷一会儿再说", brain: "instinct" }
+        ]
+    },
+    {
+        q: "你更喜欢哪种阅读方式？",
+        options: [
+            { text: "做思维导图，写读书笔记", brain: "rational" },
+            { text: "沉浸在故事里，感受人物情绪", brain: "emotional" },
+            { text: "看短视频解读，快速获取要点", brain: "instinct" }
+        ]
+    },
+    {
+        q: "一天中你什么时候最想阅读？",
+        options: [
+            { text: "早晨，头脑清醒时", brain: "rational" },
+            { text: "睡前，需要放松时", brain: "emotional" },
+            { text: "其实不太想，但觉得该读", brain: "instinct" }
+        ]
+    },
+    {
+        q: "读完一本书后，你通常？",
+        options: [
+            { text: "总结核心观点，思考如何应用", brain: "rational" },
+            { text: "回味很久，推荐给朋友", brain: "emotional" },
+            { text: "很快忘记，除非特别精彩", brain: "instinct" }
+        ]
+    }
+];
+
+// Init
+function init() {
+    document.getElementById('date-display').textContent = new Date().toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('daily-quote').innerHTML = quotes[Math.floor(Math.random() * quotes.length)].text + '<div class="quote-author">—— ' + quotes[Math.floor(Math.random() * quotes.length)].author + '</div>';
+    
+    if (store.firstVisit) {
+        document.getElementById('onboarding').classList.remove('hidden');
+    } else {
+        document.getElementById('onboarding').classList.add('hidden');
+    }
+    
+    renderPlans();
+    renderLogs();
+    renderMilestones();
+    updateStats();
+    drawTodayChart();
+    drawRadarChart();
+    drawHRVChart();
+    checkMilestones();
+}
+
+// Onboarding
+function nextStep(n) {
+    document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + n).classList.add('active');
+}
+
+function finishOnboarding() {
+    document.getElementById('onboarding').classList.add('hidden');
+    localStorage.setItem('awaken_first', 'false');
+    store.firstVisit = false;
+    unlockMilestone('首次进入觉醒书架');
+}
+
+// Navigation
+function navTo(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    if (page === 'insight') {
+        updateInsight();
+        drawRadarChart();
+    } else if (page === 'home') {
+        updateStats();
+        drawTodayChart();
+    } else if (page === 'logs') {
+        renderLogs();
+    }
+}
+
+// Modal
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+    if (id === 'modal-fall') {
+        document.getElementById('fall-step1').style.display = 'block';
+        document.getElementById('fall-step2').style.display = 'none';
+        document.getElementById('fall-step3').style.display = 'none';
+    }
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+// Brain Log
+let selectedBrain = null;
+function recordBrain(type) {
+    selectedBrain = type;
+    document.querySelectorAll('.brain-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.brain-btn.' + type).classList.add('active');
+}
+
+function saveBrainLog() {
+    if (!selectedBrain) { alert('请先选择一个脑区'); return; }
+    const note = document.getElementById('brain-note').value;
+    const log = {
+        id: Date.now(),
+        type: selectedBrain,
+        note: note,
+        time: new Date().toLocaleString('zh-CN')
+    };
+    store.logs.unshift(log);
+    localStorage.setItem('awaken_logs', JSON.stringify(store.logs));
+    document.getElementById('brain-note').value = '';
+    document.querySelectorAll('.brain-btn').forEach(b => b.classList.remove('active'));
+    selectedBrain = null;
+    updateStats();
+    drawTodayChart();
+    renderLogs();
+    checkMilestones();
+    alert('已记录此刻的三脑状态');
+}
+
+// Plans
+function renderPlans() {
+    const list = document.getElementById('plan-list');
+    if (store.plans.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:20px;">暂无计划，添加一个最小计划吧</div>';
+        return;
+    }
+    list.innerHTML = store.plans.map(p => `
+        <div class="plan-item">
+            <div class="plan-info">
+                <h4>${p.title}</h4>
+                <span>${p.time} • ${brainLabel(p.brain)}</span>
+            </div>
+            <div class="plan-actions">
+                <button style="background:${brainColor(p.brain)};color:white;" onclick="triggerAlarm('${p.title}')">⏰</button>
+                <button style="background:var(--border);color:var(--text-light);" onclick="deletePlan(${p.id})">🗑</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function brainLabel(b) {
+    const map = { rational: '理智脑时段', emotional: '情绪脑时段', instinct: '本能脑时段' };
+    return map[b] || '';
+}
+
+function brainColor(b) {
+    const map = { rational: 'var(--rational)', emotional: 'var(--emotional)', instinct: 'var(--instinct)' };
+    return map[b] || '#999';
+}
+
+function savePlan() {
+    const title = document.getElementById('plan-title').value;
+    const time = document.getElementById('plan-time').value;
+    const brain = document.getElementById('plan-brain').value;
+    if (!title || !time) { alert('请填写完整'); return; }
+    store.plans.push({ id: Date.now(), title, time, brain, done: false });
+    localStorage.setItem('awaken_plans', JSON.stringify(store.plans));
+    renderPlans();
+    closeModal('modal-plan');
+    document.getElementById('plan-title').value = '';
+    document.getElementById('plan-time').value = '';
+}
+
+function deletePlan(id) {
+    store.plans = store.plans.filter(p => p.id !== id);
+    localStorage.setItem('awaken_plans', JSON.stringify(store.plans));
+    renderPlans();
+}
+
+function triggerAlarm(title) {
+    document.getElementById('alarm-plan-title').textContent = title;
+    document.getElementById('modal-alarm').classList.add('active');
+    // Simulate vibration
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+}
+
+function alarmDone() {
+    closeModal('modal-alarm');
+    unlockMilestone('首次完成阅读计划');
+    alert('太棒了！你完成了今天的阅读。');
+}
+
+function alarmLater() {
+    closeModal('modal-alarm');
+    setTimeout(() => {
+        document.getElementById('modal-alarm').classList.add('active');
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }, 10000);
+}
+
+function alarmFall() {
+    closeModal('modal-alarm');
+    openModal('modal-fall');
+}
+
+// Fall Button
+function openFall() {
+    openModal('modal-fall');
+}
+
+function fallReason(reason) {
+    document.getElementById('fall-step1').style.display = 'none';
+    document.getElementById('fall-step2').style.display = 'block';
+    document.getElementById('fall-quote').textContent = fallQuotes[reason];
+    const opts = fallOptions[reason];
+    document.getElementById('fall-options').innerHTML = opts.map(o => `
+        <button class="btn btn-minimal" onclick="acceptMinimal('${o.from}', '${o.to}')">
+            ${o.from} → ${o.to}
+        </button>
+    `).join('');
+    unlockMilestone('首次点击坠落按钮');
+}
+
+function acceptMinimal(from, to) {
+    document.getElementById('fall-step2').style.display = 'none';
+    document.getElementById('fall-step3').style.display = 'block';
+    const log = {
+        id: Date.now(),
+        type: 'fall',
+        note: `坠落：${from} → ${to}`,
+        time: new Date().toLocaleString('zh-CN')
+    };
+    store.logs.unshift(log);
+    localStorage.setItem('awaken_logs', JSON.stringify(store.logs));
+    checkMilestones();
+}
+
+// Test
+let testAnswers = [];
+let currentQ = 0;
+
+function startTest() {
+    document.getElementById('test-start').style.display = 'none';
+    document.getElementById('test-questions').style.display = 'block';
+    testAnswers = [];
+    currentQ = 0;
+    showQuestion();
+}
+
+function showQuestion() {
+    const q = testQuestions[currentQ];
+    const container = document.getElementById('test-questions');
+    container.innerHTML = `
+        <div class="card">
+            <div style="margin-bottom:8px;color:var(--text-light);font-size:13px;">问题 ${currentQ + 1} / ${testQuestions.length}</div>
+            <div style="font-weight:600;margin-bottom:16px;font-size:16px;">${q.q}</div>
+            ${q.options.map((o, i) => `
+                <div class="test-option" onclick="answerTest(${i}, '${o.brain}')">
+                    ${o.text}
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function answerTest(idx, brain) {
+    testAnswers.push(brain);
+    currentQ++;
+    if (currentQ < testQuestions.length) {
+        showQuestion();
+    } else {
+        showTestResult();
+    }
+}
+
+function showTestResult() {
+    document.getElementById('test-questions').style.display = 'none';
+    const result = { rational: 0, emotional: 0, instinct: 0 };
+    testAnswers.forEach(a => result[a]++);
+    const total = testAnswers.length;
+    const r = Math.round(result.rational / total * 100);
+    const e = Math.round(result.emotional / total * 100);
+    const i = Math.round(result.instinct / total * 100);
+    
+    store.testResult = { rational: r, emotional: e, instinct: i };
+    localStorage.setItem('awaken_test', JSON.stringify(store.testResult));
+    
+    let dominant = 'rational';
+    if (e > result[dominant]) dominant = 'emotional';
+    if (i > result[dominant]) dominant = 'instinct';
+    const labels = { rational: '理智脑', emotional: '情绪脑', instinct: '本能脑' };
+    const colors = { rational: '#3B82F6', emotional: '#F97316', instinct: '#EAB308' };
+    const desc = {
+        rational: '你是理智型读者，擅长逻辑分析和系统学习。建议多读哲学、科学、商业类书籍，发挥你的结构化优势。',
+        emotional: '你是情绪型读者，容易被故事和情感打动。建议多读文学、传记、心理学类书籍，让情绪成为理解的桥梁。',
+        instinct: '你是本能型读者，追求轻松和实用。建议从漫画、短篇、实用指南入门，用最小行动建立阅读习惯。'
+    };
+    
+    document.getElementById('test-result').innerHTML = `
+        <div class="card">
+            <div style="text-align:center;padding:20px;">
+                <div style="font-size:48px;margin-bottom:12px;">🧠</div>
+                <h3>你的阅读三脑分布</h3>
+                <div style="margin:16px 0;">
+                    <div style="display:flex;align-items:center;margin-bottom:8px;">
+                        <span style="width:60px;font-size:13px;">理智脑</span>
+                        <div style="flex:1;height:20px;background:#F3F4F6;border-radius:10px;overflow:hidden;margin:0 8px;">
+                            <div style="width:${r}%;height:100%;background:var(--rational);border-radius:10px;"></div>
+                        </div>
+                        <span style="width:40px;text-align:right;font-weight:600;color:var(--rational);">${r}%</span>
+                    </div>
+                    <div style="display:flex;align-items:center;margin-bottom:8px;">
+                        <span style="width:60px;font-size:13px;">情绪脑</span>
+                        <div style="flex:1;height:20px;background:#F3F4F6;border-radius:10px;overflow:hidden;margin:0 8px;">
+                            <div style="width:${e}%;height:100%;background:var(--emotional);border-radius:10px;"></div>
+                        </div>
+                        <span style="width:40px;text-align:right;font-weight:600;color:var(--emotional);">${e}%</span>
+                    </div>
+                    <div style="display:flex;align-items:center;">
+                        <span style="width:60px;font-size:13px;">本能脑</span>
+                        <div style="flex:1;height:20px;background:#F3F4F6;border-radius:10px;overflow:hidden;margin:0 8px;">
+                            <div style="width:${i}%;height:100%;background:var(--instinct);border-radius:10px;"></div>
+                        </div>
+                        <span style="width:40px;text-align:right;font-weight:600;color:var(--instinct);">${i}%</span>
+                    </div>
+                </div>
+                <div style="padding:12px;background:${colors[dominant]}15;border-radius:var(--radius-sm);margin:16px 0;">
+                    <strong style="color:${colors[dominant]};font-size:16px;">主导：${labels[dominant]}</strong>
+                    <p style="margin-top:8px;font-size:14px;color:var(--text);">${desc[dominant]}</p>
+                </div>
+                <button class="btn btn-primary" onclick="navTo('home')">返回首页</button>
+            </div>
+        </div>
+    `;
+    document.getElementById('test-result').style.display = 'block';
+    unlockMilestone('完成三脑倾向测试');
+    drawRadarChart();
+}
+
+// Chat
+function setChat(text) {
+    document.getElementById('chat-input').value = text;
+    sendChat();
+}
+
+function sendChat() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    
+    const box = document.getElementById('chat-box');
+    box.innerHTML += `<div class="chat-msg user">${text}</div>`;
+    input.value = '';
+    box.scrollTop = box.scrollHeight;
+    
+    setTimeout(() => {
+        let reply = "这是一个很好的觉察。从三脑理论来看，你的反应是正常的。试试把注意力放在'下一步最小行动'上，而不是评判自己。";
+        for (let key in qaPairs) {
+            if (text.includes(key)) { reply = qaPairs[key]; break; }
+        }
+        box.innerHTML += `<div class="chat-msg ai">${reply}</div>`;
+        box.scrollTop = box.scrollHeight;
+    }, 800);
+}
+
+// Logs
+function renderLogs() {
+    const list = document.getElementById('logs-list');
+    if (store.logs.length === 0) {
+        list.innerHTML = '<div class="card" style="text-align:center;color:var(--text-light);padding:40px;">暂无记录，从首页开始记录你的三脑状态吧</div>';
+        return;
+    }
+    list.innerHTML = store.logs.slice(0, 50).map(l => `
+        <div class="log-entry ${l.type}">
+            <div class="log-time">${l.time}</div>
+            <div class="log-note">${l.note || '无备注'}</div>
+            ${l.type !== 'fall' ? `<span class="log-tag ${l.type}">${brainLabel(l.type)}在说话</span>` : '<span class="log-tag instinct">🍂 坠落记录</span>'}
+        </div>
+    `).join('');
+}
+
+// Stats & Charts
+function updateStats() {
+    const today = new Date().toDateString();
+    const todayLogs = store.logs.filter(l => new Date(l.id).toDateString() === today && l.type !== 'fall');
+    const counts = { rational: 0, emotional: 0, instinct: 0 };
+    todayLogs.forEach(l => counts[l.type]++);
+    document.getElementById('stat-rational').textContent = counts.rational;
+    document.getElementById('stat-emotional').textContent = counts.emotional;
+    document.getElementById('stat-instinct').textContent = counts.instinct;
+}
+
+function drawTodayChart() {
+    const canvas = document.getElementById('todayChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    
+    const w = rect.width, h = rect.height;
+    const today = new Date().toDateString();
+    const todayLogs = store.logs.filter(l => new Date(l.id).toDateString() === today && l.type !== 'fall');
+    const counts = { rational: 0, emotional: 0, instinct: 0 };
+    todayLogs.forEach(l => counts[l.type]++);
+    const total = todayLogs.length || 1;
+    
+    const data = [
+        { label: '理智脑', value: counts.rational / total, color: '#3B82F6' },
+        { label: '情绪脑', value: counts.emotional / total, color: '#F97316' },
+        { label: '本能脑', value: counts.instinct / total, color: '#EAB308' }
+    ];
+    
+    const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 20;
+    let start = -Math.PI / 2;
+    
+    data.forEach(d => {
+        const angle = d.value * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, start, start + angle);
+        ctx.fillStyle = d.color;
+        ctx.fill();
+        start += angle;
+    });
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    
+    ctx.fillStyle = '#374151';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('今日', cx, cy - 5);
+    ctx.font = '12px sans-serif';
+    ctx.fillStyle = '#6B7280';
+    ctx.fillText(`${todayLogs.length}次记录`, cx, cy + 12);
+}
+
+function drawRadarChart() {
+    const canvas = document.getElementById('radarChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    
+    const w = rect.width, h = rect.height;
+    const cx = w / 2, cy = h / 2;
+    const r = Math.min(w, h) / 2 - 30;
+    
+    const result = store.testResult || { rational: 33, emotional: 33, instinct: 34 };
+    const values = [result.rational / 100, result.emotional / 100, result.instinct / 100];
+    const labels = ['理智脑', '情绪脑', '本能脑'];
+    const colors = ['#3B82F6', '#F97316', '#EAB308'];
+    const angles = [0, 2 * Math.PI / 3, 4 * Math.PI / 3];
+    
+    // Grid
+    for (let i = 1; i <= 4; i++) {
+        ctx.beginPath();
+        angles.forEach((a, idx) => {
+            const x = cx + Math.cos(a - Math.PI / 2) * r * i / 4;
+            const y = cy + Math.sin(a - Math.PI / 2) * r * i / 4;
+            if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.strokeStyle = '#E5E7EB';
+        ctx.stroke();
+    }
+    
+    // Data
+    ctx.beginPath();
+    angles.forEach((a, idx) => {
+        const x = cx + Math.cos(a - Math.PI / 2) * r * values[idx];
+        const y = cy + Math.sin(a - Math.PI / 2) * r * values[idx];
+        if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(59,130,246,0.2)';
+    ctx.fill();
+    ctx.strokeStyle = '#3B82F6';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Labels
+    angles.forEach((a, idx) => {
+        const x = cx + Math.cos(a - Math.PI / 2) * (r + 20);
+        const y = cy + Math.sin(a - Math.PI / 2) * (r + 20);
+        ctx.fillStyle = colors[idx];
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(labels[idx], x, y);
+        ctx.fillStyle = '#374151';
+        ctx.font = '11px sans-serif';
+        ctx.fillText(Math.round(values[idx] * 100) + '%', x, y + 14);
+    });
+}
+
+function drawHRVChart() {
+    const canvas = document.getElementById('hrvChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    
+    const w = rect.width, h = rect.height;
+    const data = [];
+    for (let i = 0; i < 30; i++) data.push(50 + Math.random() * 30 + Math.sin(i / 5) * 10);
+    
+    ctx.beginPath();
+    ctx.moveTo(0, h - (data[0] / 100) * h);
+    data.forEach((d, i) => {
+        ctx.lineTo((i / (data.length - 1)) * w, h - (d / 100) * h);
+    });
+    ctx.strokeStyle = '#3B82F6';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    data.forEach((d, i) => {
+        ctx.lineTo((i / (data.length - 1)) * w, h - (d / 100) * h);
+    });
+    ctx.lineTo(w, h);
+    ctx.fillStyle = 'rgba(59,130,246,0.1)';
+    ctx.fill();
+}
+
+// Insight
+function updateInsight() {
+    const logs = store.logs.filter(l => l.type !== 'fall');
+    const total = logs.length || 1;
+    const counts = { rational: 0, emotional: 0, instinct: 0 };
+    logs.forEach(l => counts[l.type]++);
+    
+    document.getElementById('week-rational').textContent = Math.round(counts.rational / total * 100) + '%';
+    document.getElementById('week-emotional').textContent = Math.round(counts.emotional / total * 100) + '%';
+    document.getElementById('week-instinct').textContent = Math.round(counts.instinct / total * 100) + '%';
+    
+    const advice = document.getElementById('insight-advice');
+    if (counts.instinct > counts.rational && counts.instinct > counts.emotional) {
+        advice.innerHTML = '<strong>💡 洞察：</strong>你的本能脑近期较活跃。建议把阅读计划改为"最小版本"，降低启动阻力。试着把"读1小时"改成"读1页"。';
+    } else if (counts.emotional > counts.rational) {
+        advice.innerHTML = '<strong>💡 洞察：</strong>你的情绪脑参与度很高。建议多选择能引起情感共鸣的书籍，让情绪成为阅读的动力而非阻力。';
+    } else if (counts.rational > counts.emotional && counts.rational > counts.instinct) {
+        advice.innerHTML = '<strong>💡 洞察：</strong>你的理智脑主导阅读。这是深度学习的好时机，但也要注意给情绪脑一些参与空间，避免 burnout。';
+    } else {
+        advice.innerHTML = '<strong>💡 洞察：</strong>继续记录你的三脑状态，积累更多数据后，我们会给出更精准的模式分析。';
+    }
+}
+
+// Milestones
+const milestoneList = [
+    { id: 'first_enter', name: '首次进入觉醒书架', desc: '开始了自我觉察的旅程', icon: '🚪' },
+    { id: 'first_test', name: '完成三脑倾向测试', desc: '了解了自己的阅读模式', icon: '🧠' },
+    { id: 'first_fall', name: '首次点击坠落按钮', desc: '学会了接纳而非批判', icon: '🍂' },
+    { id: 'first_log', name: '首次记录三脑', desc: '开始觉察内在状态', icon: '📝' },
+    { id: 'first_plan', name: '首次完成阅读计划', desc: '迈出了行动的第一步', icon: '✅' },
+    { id: 'three_logs', name: '连续3天记录三脑', desc: '建立了觉察习惯', icon: '📅' },
+    { id: 'first_minimal', name: '首次完成最小行动', desc: '证明了小步骤的力量', icon: '🐾' }
+];
+
+function renderMilestones() {
+    const container = document.getElementById('milestones');
+    container.innerHTML = milestoneList.map(m => {
+        const unlocked = store.milestones.includes(m.id);
+        return `
+            <div class="milestone ${unlocked ? 'unlocked' : ''}">
+                <div class="milestone-icon">${unlocked ? m.icon : '🔒'}</div>
+                <div class="milestone-text">
+                    <h4>${m.name}</h4>
+                    <p>${m.desc}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function unlockMilestone(id) {
+    if (!store.milestones.includes(id)) {
+        store.milestones.push(id);
+        localStorage.setItem('awaken_milestones', JSON.stringify(store.milestones));
+        renderMilestones();
+        const m = milestoneList.find(x => x.id === id);
+        if (m && navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+    }
+}
+
+function checkMilestones() {
+    if (store.logs.filter(l => l.type !== 'fall').length >= 1) unlockMilestone('first_log');
+    if (store.logs.filter(l => l.type !== 'fall').length >= 3) unlockMilestone('three_logs');
+    const hasMinimal = store.logs.some(l => l.note && l.note.includes('→'));
+    if (hasMinimal) unlockMilestone('first_minimal');
+}
+
+// Social
+function sendVibe(name) {
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+        alert(`已向${name}发送觉醒震动！如果对方佩戴手环，会收到你的鼓励。`);
+    } else {
+        alert(`已向${name}发送觉醒震动！（当前设备不支持物理震动）`);
+    }
+}
+
+function selectAlarmMode(el, mode) {
+    document.querySelectorAll('#page-device .brain-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+}
+
+// Init
+window.addEventListener('load', init);
+window.addEventListener('resize', () => {
+    drawTodayChart();
+    drawRadarChart();
+    drawHRVChart();
+});
+</script>
+</body>
+</html>
+'''
+
+with open('/mnt/agents/output/awaken_bookshelf_app.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("文件已生成：/mnt/agents/output/awaken_bookshelf_app.html")
+print(f"文件大小：{len(html_content)} 字符")
